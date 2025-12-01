@@ -1,0 +1,37 @@
+.like-button {
+  padding: 0.5rem;
+  border-radius: 9999px;
+  transition: all 0.2s ease;
+  color: #6b7280;
+}
+
+.like-button:hover {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.like-button.liked {
+  color: #ef4444;
+}
+
+.like-button.animate .heart-icon {
+  animation: heartBeat 1s;
+}
+
+@keyframes heartBeat {
+  0% {
+    transform: scale(1);
+  }
+  14% {
+    transform: scale(1.3);
+  }
+  28% {
+    transform: scale(1);
+  }
+  42% {
+    transform: scale(1.3);
+  }
+  70% {
+    transform: scale(1);
+  }
+}
