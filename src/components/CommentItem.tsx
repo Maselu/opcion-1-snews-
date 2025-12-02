@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Comment } from '../types';
 import { useAuth } from '../hooks/useAuth';
-import { formatDistanceToNow } from 'date-fns'; // I might need to install date-fns or use native Intl
+//import { formatDistanceToNow } from 'date-fns'; // I might need to install date-fns or use native Intl
 import { Heart, MessageCircle, Trash2 } from 'lucide-react';
 import api from '../services/api';
 

@@ -21,7 +21,7 @@ class CommentController extends Controller
 
     public function store(Request $request, $articleId)
     {
-        $request->validate([
+        $validated = $request->validate([
             'content' => 'required|string',
             'parent_comment_id' => 'nullable|exists:comments,id',
         ]);
@@ -29,8 +29,8 @@ class CommentController extends Controller
         $comment = Comment::create([
             'user_id' => Auth::id(),
             'article_id' => $articleId,
-            'parent_comment_id' => $request->parent_comment_id,
-            'content' => $request->content,
+            'parent_comment_id' => $validated['parent_comment_id'] ?? null,
+            'content' => $validated['content'],
         ]);
 
         return response()->json($comment->load('user'), 201);
