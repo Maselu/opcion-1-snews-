@@ -1,162 +1,120 @@
-import { useState, useEffect } from 'react';
-import { Share2, Bookmark, Clock, Eye } from 'lucide-react';
-import { Header } from '../components/Header';
-import { Footer } from '../components/Footer';
-import { CommentSection } from '../components/CommentSection';
-import { Article, Comment } from '../types/database';
+import { useState } from 'react';
+import { useParams } from 'react-router-dom';
+import { useFetch } from '../hooks/useFetch';
+import { Article, Comment } from '../types';
+import { useAuth } from '../hooks/useAuth';
+import api from '../services/api';
+import CommentList from '../components/CommentList';
+import { Loader2, Send } from 'lucide-react';
 
-interface ArticleDetailProps {
-  articleId: number;
-}
+export default function ArticleDetail() {
+  const { id } = useParams<{ id: string }>();
+  const { data: article, loading, error } = useFetch<Article>(`/articles/${id}`);
+  const { user } = useAuth();
 
-export function ArticleDetail({ articleId }: ArticleDetailProps) {
-  const [article, setArticle] = useState<Article | null>(null);
-  const [comments, setComments] = useState<Comment[]>([]);
+  const [commentContent, setCommentContent] = useState('');
+  const [replyTo, setReplyTo] = useState<number | null>(null);
 
-  useEffect(() => {
-    const mockArticle: Article = {
-      id: articleId,
-      title: 'Breaking: Major technological breakthrough announced',
-      content: `Scientists have made a groundbreaking discovery that could revolutionize the way we approach renewable energy. The new technology promises to make solar power more efficient and affordable than ever before.
+  const handleSubmitComment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!commentContent.trim()) return;
 
-In a press conference held earlier today, lead researcher Dr. Sarah Chen announced that her team has developed a new type of solar cell that can convert sunlight into electricity with unprecedented efficiency. The breakthrough involves a novel material composition that allows the cells to capture a broader spectrum of light wavelengths.
-
-"This is a game-changer for renewable energy," Dr. Chen explained. "Our new solar cells can achieve efficiency rates of up to 45%, compared to the current industry standard of around 20%. This means that solar panels using this technology could generate more than twice as much power from the same amount of sunlight."
-
-The research team spent five years developing the new technology, overcoming numerous technical challenges along the way. The key innovation lies in the use of a multi-layered structure that can simultaneously capture different wavelengths of light, maximizing energy conversion across the entire solar spectrum.
-
-Industry experts are already hailing the discovery as a potential turning point in the global transition to renewable energy. With higher efficiency rates, solar power could become more cost-effective and practical for a wider range of applications, from residential rooftops to large-scale power plants.
-
-The technology is expected to enter commercial production within the next two years, pending final testing and regulatory approvals. Several major energy companies have already expressed interest in licensing the technology for their own solar panel products.`,
-      source: 'Tech News Daily',
-      published_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-      created_at: new Date().toISOString(),
-      category: { id: 1, name: 'News', created_at: new Date().toISOString() },
-    };
-
-    const mockComments: Comment[] = [
-      {
-        id: 1,
-        user_id: '1',
-        article_id: articleId,
-        content: 'This is incredible news! Solar energy has needed a breakthrough like this for years.',
-        is_edited: false,
-        created_at: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
-        user: {
-          id: '1',
-          name: 'Alice Johnson',
-          email: 'alice@example.com',
-          created_at: new Date().toISOString(),
-        },
-        likes_count: 24,
-        is_liked: false,
-      },
-      {
-        id: 2,
-        user_id: '2',
-        article_id: articleId,
-        content: 'I wonder how this will affect the cost of residential solar panels. Could make them much more accessible!',
-        is_edited: false,
-        created_at: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
-        user: {
-          id: '2',
-          name: 'Bob Smith',
-          email: 'bob@example.com',
-          created_at: new Date().toISOString(),
-        },
-        likes_count: 18,
-        is_liked: false,
-      },
-    ];
-
-    setArticle(mockArticle);
-    setComments(mockComments);
-  }, [articleId]);
-
-  if (!article) {
-    return <div>Loading...</div>;
-  }
-
-  const timeAgo = (date: string) => {
-    const seconds = Math.floor((new Date().getTime() - new Date(date).getTime()) / 1000);
-    const intervals = [
-      { label: 'hour', seconds: 3600 },
-      { label: 'minute', seconds: 60 },
-    ];
-
-    for (const interval of intervals) {
-      const count = Math.floor(seconds / interval.seconds);
-      if (count >= 1) {
-        return `${count} ${interval.label}${count > 1 ? 's' : ''} ago`;
-      }
+    try {
+      await api.post(`/articles/${id}/comments`, {
+        content: commentContent,
+        parent_comment_id: replyTo
+      });
+      setCommentContent('');
+      setReplyTo(null);
+      // Ideally refetch comments or optimistically update
+      window.location.reload(); // Simple reload for now
+    } catch (error) {
+      console.error('Error posting comment', error);
     }
-    return 'just now';
   };
 
+  const handleDeleteComment = async (commentId: number) => {
+    if (!confirm('Are you sure?')) return;
+    try {
+      await api.delete(`/comments/${commentId}`);
+      window.location.reload();
+    } catch (error) {
+      console.error('Error deleting comment', error);
+    }
+  };
+
+  if (loading) return <div className="flex justify-center p-12"><Loader2 className="animate-spin" /></div>;
+  if (error || !article) return <div className="text-center p-12">Article not found</div>;
+
+  // Type assertion or check for comments since they might be nested in article or fetched separately
+  // The backend ArticleController show method includes 'comments'
+  const comments = (article as any).comments as Comment[] || [];
+
   return (
-    <div className="min-h-screen bg-secondary-50">
-      <Header />
-
-      <article className="max-w-4xl mx-auto px-4 py-8">
-        <div className="mb-6">
-          <span className="badge bg-primary-100 text-primary-700">
-            {article.category?.name || 'News'}
-          </span>
+    <div className="max-w-4xl mx-auto px-4 py-8">
+      <article className="prose lg:prose-xl mx-auto">
+        <h1 className="text-3xl font-bold text-gray-900 mb-4">{article.title}</h1>
+        <div className="flex items-center text-gray-500 text-sm mb-8">
+          <span>{new Date(article.published_at).toLocaleDateString()}</span>
+          <span className="mx-2">•</span>
+          <span>{article.category?.name}</span>
+          <span className="mx-2">•</span>
+          <span>{article.source}</span>
         </div>
-
-        <h1 className="text-4xl md:text-5xl font-bold text-secondary-900 mb-6 leading-tight animate-fade-in">
-          {article.title}
-        </h1>
-
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-8 pb-6 border-b border-secondary-200">
-          <div className="flex items-center space-x-6 text-sm text-secondary-600">
-            {article.source && (
-              <span className="font-medium text-secondary-900">{article.source}</span>
-            )}
-            <div className="flex items-center space-x-2">
-              <Clock className="w-4 h-4" />
-              <span>{timeAgo(article.published_at)}</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Eye className="w-4 h-4" />
-              <span>1.2k views</span>
-            </div>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <button className="p-2 text-secondary-600 hover:text-primary-600 hover:bg-secondary-100 rounded-lg transition-colors">
-              <Bookmark className="w-5 h-5" />
-            </button>
-            <button className="p-2 text-secondary-600 hover:text-primary-600 hover:bg-secondary-100 rounded-lg transition-colors">
-              <Share2 className="w-5 h-5" />
-            </button>
-          </div>
+        <div className="whitespace-pre-wrap text-gray-700 leading-relaxed">
+          {article.content}
         </div>
-
-        <div className="card p-8 mb-8 animate-fade-in">
-          <div className="prose prose-lg max-w-none">
-            {article.content.split('\n\n').map((paragraph, index) => (
-              <p key={index} className="text-secondary-700 leading-relaxed mb-4">
-                {paragraph}
-              </p>
-            ))}
-          </div>
-        </div>
-
-        <div className="mb-8">
-          <div className="card p-6 bg-gradient-to-r from-primary-50 to-accent-50 border border-primary-100">
-            <h3 className="font-semibold text-secondary-900 mb-2">Start a discussion</h3>
-            <p className="text-sm text-secondary-600 mb-4">
-              Want to discuss this article in depth? Create a topic and invite the community to join.
-            </p>
-            <button className="btn-primary">Create Topic</button>
-          </div>
-        </div>
-
-        <CommentSection comments={comments} />
       </article>
 
-      <Footer />
+      <div className="mt-12 border-t pt-8">
+        <h2 className="text-2xl font-bold mb-6">Comments</h2>
+
+        {user ? (
+          <form onSubmit={handleSubmitComment} className="mb-8">
+            <div className="flex gap-4">
+              <img
+                src={user.user_metadata?.avatar_url || `https://ui-avatars.com/api/?name=${user.email}`}
+                alt=""
+                className="h-10 w-10 rounded-full"
+              />
+              <div className="flex-1">
+                {replyTo && (
+                  <div className="text-sm text-gray-500 mb-2 flex justify-between">
+                    <span>Replying to comment #{replyTo}</span>
+                    <button type="button" onClick={() => setReplyTo(null)} className="text-red-500">Cancel</button>
+                  </div>
+                )}
+                <textarea
+                  value={commentContent}
+                  onChange={(e) => setCommentContent(e.target.value)}
+                  placeholder="Write a comment..."
+                  className="w-full border-gray-300 rounded-md shadow-sm focus:ring-primary-500 focus:border-primary-500 p-3"
+                  rows={3}
+                />
+                <div className="mt-2 flex justify-end">
+                  <button
+                    type="submit"
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700"
+                  >
+                    <Send className="h-4 w-4 mr-2" />
+                    Post Comment
+                  </button>
+                </div>
+              </div>
+            </div>
+          </form>
+        ) : (
+          <div className="bg-gray-50 p-4 rounded-md text-center mb-8">
+            <p>Please <a href="/login" className="text-primary-600 hover:underline">sign in</a> to leave a comment.</p>
+          </div>
+        )}
+
+        <CommentList
+          comments={comments}
+          onReply={setReplyTo}
+          onDelete={handleDeleteComment}
+        />
+      </div>
     </div>
   );
 }

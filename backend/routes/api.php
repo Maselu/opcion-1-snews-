@@ -1,0 +1,42 @@
+<?php
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ArticleController;
+use App\Http\Controllers\CommentController;
+use App\Http\Controllers\LikeController;
+use App\Http\Controllers\TopicController;
+use App\Http\Controllers\WeatherController;
+
+/*
+|--------------------------------------------------------------------------
+| API Routes
+|--------------------------------------------------------------------------
+|
+| Here is where you can register API routes for your application. These
+| routes are loaded by the RouteServiceProvider and all of them will
+| be assigned to the "api" middleware group. Make something great!
+|
+*/
+
+// Public Routes
+Route::get('/articles', [ArticleController::class, 'index']);
+Route::get('/articles/{id}', [ArticleController::class, 'show']);
+Route::get('/articles/{id}/comments', [CommentController::class, 'index']);
+Route::get('/topics', [TopicController::class, 'index']);
+Route::get('/topics/{id}', [TopicController::class, 'show']);
+Route::get('/weather', [WeatherController::class, 'current']);
+
+// Protected Routes
+Route::middleware('auth:supabase')->group(function () {
+    Route::get('/user', [AuthController::class, 'user']);
+    Route::get('/profile', [AuthController::class, 'user']); // Alias for profile
+
+    Route::post('/articles/{id}/comments', [CommentController::class, 'store']);
+    Route::delete('/comments/{id}', [CommentController::class, 'destroy']);
+
+    Route::post('/comments/{id}/likes', [LikeController::class, 'toggle']);
+
+    Route::post('/topics', [TopicController::class, 'store']);
+});

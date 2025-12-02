@@ -19,6 +19,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        \Illuminate\Support\Facades\Auth::extend('supabase', function ($app, $name, array $config) {
+            return new \App\Guards\SupabaseGuard(
+                \Illuminate\Support\Facades\Auth::createUserProvider($config['provider']),
+                $app['request']
+            );
+        });
     }
 }

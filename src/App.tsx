@@ -1,51 +1,29 @@
-import { useState } from 'react';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { Home } from './pages/Home';
-import { Login } from './pages/Login';
-import { Register } from './pages/Register';
-import { Profile } from './pages/Profile';
-import { ArticleDetail } from './pages/ArticleDetail';
-
-type Page = 'home' | 'login' | 'register' | 'profile' | 'article';
-
-function AppContent() {
-  const { user, loading } = useAuth();
-  const [currentPage, setCurrentPage] = useState<Page>('home');
-  const [selectedArticleId, setSelectedArticleId] = useState<number | null>(null);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-secondary-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-primary-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-secondary-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user && (currentPage === 'login' || currentPage === 'register')) {
-    if (currentPage === 'login') {
-      return <Login onSwitch={() => setCurrentPage('register')} />;
-    }
-    return <Register onSwitch={() => setCurrentPage('login')} />;
-  }
-
-  if (currentPage === 'profile') {
-    return <Profile />;
-  }
-
-  if (currentPage === 'article' && selectedArticleId) {
-    return <ArticleDetail articleId={selectedArticleId} />;
-  }
-
-  return <Home />;
-}
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { AuthProvider } from './hooks/useAuth';
+import Navbar from './components/Navbar';
+import Home from './pages/Home';
+import ArticleDetail from './pages/ArticleDetail';
+import Login from './pages/Login';
+import Profile from './pages/Profile';
+import TopicList from './pages/TopicList';
 
 function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <Router>
+        <div className="min-h-screen bg-gray-50">
+          <Navbar />
+          <main>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/articles/:id" element={<ArticleDetail />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/topics" element={<TopicList />} />
+            </Routes>
+          </main>
+        </div>
+      </Router>
     </AuthProvider>
   );
 }
