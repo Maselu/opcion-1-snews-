@@ -10,6 +10,8 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable;
 
+    const UPDATED_AT = null;
+
     /**
      * The table associated with the model.
      *

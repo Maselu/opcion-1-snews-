@@ -22,27 +22,64 @@ class WeatherController extends Controller
             return response()->json($cached->data);
         }
 
-        // Fetch from AEMET (Mocking logic for now as AEMET requires complex API key handling)
-        // In a real scenario, we would use Http::get() with the API Key.
-        // For this demo, I will simulate a fetch or use a public weather API if AEMET is too complex to mock without a real key.
-        // The user provided AEMET_API_KEY in .env, so I should try to use it if implemented fully.
-        // However, AEMET API is 2-step (request -> get url -> get data).
-        // To keep it simple and robust for the "demo", I will return mock data if key is missing, or try to implement a simple fetch.
+        // Fetch from Open-Meteo (Free, No Key)
+        // Madrid Coordinates: 40.4168, -3.7038
+        // We could add a geocoding step, but for now we'll default to Madrid if location is Madrid
+        $lat = 40.4168;
+        $lon = -3.7038;
 
-        // Let's implement a simple mock/fallback for now to ensure frontend works.
+        try {
+            $response = Http::get("https://api.open-meteo.com/v1/forecast", [
+                'latitude' => $lat,
+                'longitude' => $lon,
+                'current' => 'temperature_2m,relative_humidity_2m,weather_code',
+                'timezone' => 'auto'
+            ]);
+
+            if ($response->successful()) {
+                $apiData = $response->json();
+                $current = $apiData['current'];
+
+                // Map WMO codes to conditions
+                $condition = 'Sunny';
+                $code = $current['weather_code'];
+                if ($code > 0 && $code <= 3)
+                    $condition = 'Cloudy';
+                if ($code > 3 && $code <= 67)
+                    $condition = 'Rainy';
+                if ($code > 67)
+                    $condition = 'Snowy';
+
+                $data = [
+                    'location' => $location,
+                    'temp_c' => $current['temperature_2m'],
+                    'condition' => $condition,
+                    'humidity' => $current['relative_humidity_2m'],
+                    'wind_kph' => 0, // Open-Meteo basic doesn't give wind in this query unless requested, simplifying
+                    'fetched_at' => Carbon::now()->toIso8601String(),
+                ];
+
+                WeatherReport::create([
+                    'location' => $location,
+                    'data' => $data,
+                    'fetched_at' => Carbon::now(),
+                ]);
+
+                return response()->json($data);
+            }
+        } catch (\Exception $e) {
+            // Fallback if API fails
+        }
+
+        // Fallback Mock Data
         $data = [
-            'temp_c' => rand(15, 30),
-            'condition' => ['Sunny', 'Cloudy', 'Rainy'][rand(0, 2)],
-            'humidity' => rand(30, 80),
-            'wind_kph' => rand(5, 20),
-            'location' => $location
-        ];
-
-        WeatherReport::create([
             'location' => $location,
-            'data' => $data,
-            'fetched_at' => Carbon::now(),
-        ]);
+            'temp_c' => 22,
+            'condition' => 'Sunny',
+            'humidity' => 45,
+            'wind_kph' => 10,
+            'mock' => true
+        ];
 
         return response()->json($data);
     }

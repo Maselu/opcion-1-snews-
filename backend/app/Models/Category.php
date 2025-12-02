@@ -9,6 +9,8 @@ class Category extends Model
 {
     use HasFactory;
 
+    const UPDATED_AT = null;
+
     protected $fillable = ['name'];
 
     public function articles()
