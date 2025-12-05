@@ -1,15 +1,89 @@
-import { useFetch } from '../hooks/useFetch';
-import { Article } from '../types';
+import { useState, useEffect } from 'react';
+import { useSearchParams, Link } from 'react-router-dom';
+import api from '../services/api';
 import ArticleCard from '../components/ArticleCard';
-import { Loader2, TrendingUp } from 'lucide-react';
-import { useSearchParams } from 'react-router-dom';
+import { Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Article } from '../types';
+
+interface CategorySection {
+  id: number;
+  name: string;
+  articles: Article[];
+}
 
 export default function Home() {
   const [searchParams] = useSearchParams();
-  const category = searchParams.get('category');
+  const selectedCategory = searchParams.get('category');
 
-  const endpoint = category ? `/articles?category=${category}` : '/articles';
-  const { data: response, loading, error } = useFetch<{ data: Article[] }>(endpoint);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [heroArticles, setHeroArticles] = useState<Article[]>([]);
+  const [categories, setCategories] = useState<CategorySection[]>([]);
+  const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
+
+  useEffect(() => {
+    fetchArticles();
+  }, [selectedCategory]);
+
+  const fetchArticles = async () => {
+    try {
+      setLoading(true);
+      setError('');
+
+      if (selectedCategory) {
+        // Fetch only selected category
+        const response = await api.get(`/articles?category=${selectedCategory}&limit=6`);
+        const articles = response.data.data || response.data;
+
+        setCategories([{
+          id: 0,
+          name: selectedCategory,
+          articles: articles.slice(0, 6)
+        }]);
+        setHeroArticles([]);
+      } else {
+        // Fetch all categories
+        const categoriesData = [
+          { id: 1, name: 'General' },
+          { id: 2, name: 'Ciencia' },
+          { id: 3, name: 'Deportes' },
+          { id: 4, name: 'Entretenimiento' }
+        ];
+
+        // Fetch hero articles (3 most recent)
+        const heroResponse = await api.get('/articles?limit=3');
+        const allArticles = heroResponse.data.data || heroResponse.data;
+        setHeroArticles(allArticles.slice(0, 3));
+
+        // Fetch articles for each category
+        const categoryPromises = categoriesData.map(async (cat) => {
+          const response = await api.get(`/articles?category=${cat.name}&limit=6`);
+          const articles = response.data.data || response.data;
+          return {
+            id: cat.id,
+            name: cat.name,
+            articles: articles.slice(0, 6)
+          };
+        });
+
+        const categorySections = await Promise.all(categoryPromises);
+        setCategories(categorySections);
+      }
+    } catch (err: any) {
+      console.error('Error fetching articles:', err);
+      setError('Error al cargar los artículos');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const nextHero = () => {
+    setCurrentHeroIndex((prev) => (prev + 1) % heroArticles.length);
+  };
+
+  const prevHero = () => {
+    setCurrentHeroIndex((prev) => (prev - 1 + heroArticles.length) % heroArticles.length);
+  };
 
   if (loading) {
     return (
@@ -22,54 +96,148 @@ export default function Home() {
   if (error) {
     return (
       <div className="text-center py-12">
-        <h3 className="mt-2 text-sm font-semibold text-gray-900">Error loading articles</h3>
-        <p className="mt-1 text-sm text-gray-500">{error.message}</p>
+        <h3 className="text-lg font-semibold text-gray-900">Error</h3>
+        <p className="mt-2 text-gray-600">{error}</p>
       </div>
     );
   }
 
-  const articles = response?.data || [];
-  const featured = articles.slice(0, 3);
-  const remaining = articles.slice(3);
-
   return (
     <div className="space-y-12">
-      {/* Hero Section - Featured Articles */}
-      {!category && featured.length > 0 && (
-        <section>
-          <div className="flex items-center mb-6">
-            <TrendingUp className="h-6 w-6 text-blue-600 mr-2" />
-            <h2 className="text-2xl font-bold text-gray-900">Destacadas</h2>
-          </div>
-          <div className="grid gap-6 md:grid-cols-3">
-            {featured.map((article) => (
-              <ArticleCard key={article.id} article={article} featured />
-            ))}
-          </div>
+      {/* Hero Carousel - Only show when no category is selected */}
+      {!selectedCategory && heroArticles.length > 0 && (
+        <section className="relative h-96 rounded-xl overflow-hidden">
+          {heroArticles.map((article, index) => (
+            <div
+              key={article.id}
+              className={`absolute inset-0 transition-opacity duration-500 ${index === currentHeroIndex ? 'opacity-100' : 'opacity-0'
+                }`}
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-indigo-700">
+                <div className="absolute inset-0 flex items-center justify-center text-white text-9xl opacity-10">
+                  📰
+                </div>
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+              <div className="absolute bottom-0 left-0 right-0 p-8 text-white">
+                <span className="inline-block px-3 py-1 bg-blue-600 rounded-full text-sm font-semibold mb-3">
+                  {article.category?.name || 'Noticias'}
+                </span>
+                <h2 className="text-4xl font-bold mb-3 line-clamp-2">{article.title}</h2>
+                <p className="text-gray-200 text-lg mb-4 line-clamp-2">{article.content}</p>
+                <div className="flex items-center text-sm text-gray-300">
+                  <span>{article.source || 'Fuente desconocida'}</span>
+                  <span className="mx-2">•</span>
+                  <span>{new Date(article.published_at).toLocaleDateString('es-ES')}</span>
+                </div>
+              </div>
+            </div>
+          ))}
+
+          {/* Carousel Controls */}
+          {heroArticles.length > 1 && (
+            <>
+              <button
+                onClick={prevHero}
+                className="absolute left-4 top-1/2 -translate-y-1/2 h-10 w-10 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-all"
+              >
+                <ChevronLeft className="h-6 w-6" />
+              </button>
+              <button
+                onClick={nextHero}
+                className="absolute right-4 top-1/2 -translate-y-1/2 h-10 w-10 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center text-white transition-all"
+              >
+                <ChevronRight className="h-6 w-6" />
+              </button>
+
+              {/* Indicators */}
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2">
+                {heroArticles.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentHeroIndex(index)}
+                    className={`h-2 rounded-full transition-all ${index === currentHeroIndex ? 'w-8 bg-white' : 'w-2 bg-white/50'
+                      }`}
+                  />
+                ))}
+              </div>
+            </>
+          )}
         </section>
       )}
 
-      {/* Main Articles Grid */}
-      <section>
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">
-            {category ? `${category}` : 'Todas las Noticias'}
-          </h2>
-          <span className="text-sm text-gray-500">{articles.length} artículos</span>
+      {/* Category Tabs - Only show when no category is selected */}
+      {!selectedCategory && (
+        <div className="flex items-center space-x-4 border-b border-gray-200">
+          <Link
+            to="/"
+            className="px-4 py-2 font-medium text-blue-600 border-b-2 border-blue-600"
+          >
+            📰 Noticias
+          </Link>
+          <Link
+            to="/?category=Ciencia"
+            className="px-4 py-2 font-medium text-gray-600 hover:text-blue-600 transition-colors"
+          >
+            🔬 Ciencia
+          </Link>
+          <Link
+            to="/?category=Deportes"
+            className="px-4 py-2 font-medium text-gray-600 hover:text-blue-600 transition-colors"
+          >
+            ⚽ Deportes
+          </Link>
+          <Link
+            to="/?category=Entretenimiento"
+            className="px-4 py-2 font-medium text-gray-600 hover:text-blue-600 transition-colors"
+          >
+            🎬 Entretenimiento
+          </Link>
         </div>
+      )}
 
-        {articles.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
-            <p className="text-gray-500">No hay artículos disponibles</p>
+      {/* Category Sections */}
+      {categories.map((category) => (
+        <section key={category.id} className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-gray-900">
+              {selectedCategory ? category.name : `Noticias Destacadas - ${category.name}`}
+            </h2>
+            {!selectedCategory && (
+              <Link
+                to={`/?category=${category.name}`}
+                className="text-blue-600 hover:text-blue-700 font-medium text-sm"
+              >
+                Ver todas →
+              </Link>
+            )}
           </div>
-        ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {(category ? articles : remaining).map((article) => (
-              <ArticleCard key={article.id} article={article} />
-            ))}
-          </div>
-        )}
-      </section>
+
+          {category.articles.length === 0 ? (
+            <div className="text-center py-12 bg-gray-50 rounded-xl">
+              <p className="text-gray-500">No hay artículos disponibles en esta categoría</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {category.articles.map((article) => (
+                <ArticleCard key={article.id} article={article} />
+              ))}
+            </div>
+          )}
+        </section>
+      ))}
+
+      {/* Back to Home link when viewing a category */}
+      {selectedCategory && (
+        <div className="text-center">
+          <Link
+            to="/"
+            className="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium"
+          >
+            ← Volver a todas las categorías
+          </Link>
+        </div>
+      )}
     </div>
   );
 }

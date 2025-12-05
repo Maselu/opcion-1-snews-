@@ -9,20 +9,32 @@ class ArticleController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Article::with('category');
+        $query = Article::with('category')->orderBy('published_at', 'desc');
 
-        if ($request->has('category_id')) {
-            $query->where('category_id', $request->category_id);
+        // Filter by category name
+        if ($request->has('category')) {
+            $categoryName = $request->input('category');
+            $query->whereHas('category', function ($q) use ($categoryName) {
+                $q->where('name', $categoryName);
+            });
         }
 
-        $articles = $query->orderBy('published_at', 'desc')->paginate(10);
+        // Limit results
+        $limit = $request->input('limit', 10);
 
+        if ($limit) {
+            $articles = $query->limit($limit)->get();
+            return response()->json(['data' => $articles]);
+        }
+
+        // Paginate if no limit
+        $articles = $query->paginate(10);
         return response()->json($articles);
     }
 
     public function show($id)
     {
-        $article = Article::with(['category', 'comments.user', 'comments.replies.user', 'comments.likes'])
+        $article = Article::with(['category', 'comments.user', 'comments.likes', 'comments.replies.user'])
             ->findOrFail($id);
 
         return response()->json($article);
