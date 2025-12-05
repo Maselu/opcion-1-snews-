@@ -36,7 +36,11 @@ class ImportNews extends Command
                     continue;
                 }
 
+                $count = 0;
                 foreach ($xml->channel->item as $item) {
+                    if ($count >= 6)
+                        break; // Limit to 6 articles per category
+
                     $title = (string) $item->title;
                     $link = (string) $item->link;
                     $pubDate = (string) $item->pubDate;
@@ -52,6 +56,8 @@ class ImportNews extends Command
                             'published_at' => Carbon::parse($pubDate),
                         ]
                     );
+
+                    $count++;
                 }
 
                 $this->info("Imported articles for {$categoryName}");

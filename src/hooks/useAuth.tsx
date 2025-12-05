@@ -6,7 +6,8 @@ interface AuthContextType {
     session: Session | null;
     user: User | null;
     loading: boolean;
-    signIn: () => Promise<void>;
+    signIn: (email: string, password: string) => Promise<void>;
+    signUp: (email: string, password: string) => Promise<void>;
     signOut: () => Promise<void>;
 }
 
@@ -15,6 +16,7 @@ const AuthContext = createContext<AuthContextType>({
     user: null,
     loading: true,
     signIn: async () => { },
+    signUp: async () => { },
     signOut: async () => { },
 });
 
@@ -39,21 +41,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return () => subscription.unsubscribe();
     }, []);
 
-    const signIn = async () => {
-        // For demo purposes, we might want to use email/password or OAuth.
-        // The user asked for "supabase-js para loguear usuarios".
-        // I'll assume a simple redirect or modal is handled by the UI calling this, 
-        // or this method triggers a specific flow.
-        // For now, I'll expose the supabase client directly in the hook or just use it in components.
-        // But to satisfy the interface, I'll leave it empty or implement a default sign in (e.g. GitHub).
-        // Actually, it's better to expose `supabase.auth` methods in the components.
-        // But the user asked for `useAuth` wrapper with `signIn`, `signUp`, `signOut`.
+    const signIn = async (email: string, password: string) => {
+        const { error } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+        });
+        if (error) throw error;
+    };
 
-        // Let's implement a generic signIn that takes credentials if needed, 
-        // but usually signIn is specific (email vs oauth).
-        // I will leave it as a placeholder or remove it from context if components use supabase directly.
-        // However, the prompt said: "Wrapper de supabase.auth. Métodos: signIn, signUp, signOut, user".
-        // I will implement them.
+    const signUp = async (email: string, password: string) => {
+        const { error } = await supabase.auth.signUp({
+            email,
+            password,
+        });
+        if (error) throw error;
     };
 
     const signOut = async () => {
@@ -61,7 +62,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ session, user, loading, signIn, signOut }}>
+        <AuthContext.Provider value={{ session, user, loading, signIn, signUp, signOut }}>
             {children}
         </AuthContext.Provider>
     );

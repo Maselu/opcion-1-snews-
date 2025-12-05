@@ -48,4 +48,25 @@ class CommentController extends Controller
 
         return response()->json(['message' => 'Comment deleted']);
     }
+
+    public function update(Request $request, $id)
+    {
+        $comment = Comment::findOrFail($id);
+
+        if ($comment->user_id !== Auth::id()) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $validated = $request->validate([
+            'content' => 'required|string',
+        ]);
+
+        $comment->update($validated);
+        $comment->is_edited = true;
+        $comment->edited_at = now();
+        $comment->save();
+
+        return response()->json($comment->load('user'));
+    }
 }
+

@@ -37,4 +37,37 @@ class TopicController extends Controller
         $topic = Topic::with(['user', 'comments.user'])->findOrFail($id);
         return response()->json($topic);
     }
+
+    public function update(Request $request, $id)
+    {
+        $topic = Topic::findOrFail($id);
+
+        // Check if user owns the topic
+        if ($topic->user_id !== Auth::id()) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $validated = $request->validate([
+            'title' => 'sometimes|string|max:255',
+            'description' => 'sometimes|nullable|string',
+        ]);
+
+        $topic->update($validated);
+
+        return response()->json($topic);
+    }
+
+    public function destroy($id)
+    {
+        $topic = Topic::findOrFail($id);
+
+        // Check if user owns the topic
+        if ($topic->user_id !== Auth::id()) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $topic->delete();
+
+        return response()->json(['message' => 'Topic deleted successfully']);
+    }
 }

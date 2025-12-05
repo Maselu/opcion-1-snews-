@@ -8,6 +8,7 @@ use App\Http\Controllers\CommentController;
 use App\Http\Controllers\LikeController;
 use App\Http\Controllers\TopicController;
 use App\Http\Controllers\WeatherController;
+use App\Http\Controllers\ProfileController;
 
 /*
 |--------------------------------------------------------------------------
@@ -28,15 +29,26 @@ Route::get('/topics', [TopicController::class, 'index']);
 Route::get('/topics/{id}', [TopicController::class, 'show']);
 Route::get('/weather', [WeatherController::class, 'current']);
 
+// Auth Routes (Public)
+Route::post('/auth/register', [AuthController::class, 'register']);
+
 // Protected Routes
 Route::middleware('auth:supabase')->group(function () {
+    // User & Profile
     Route::get('/user', [AuthController::class, 'user']);
-    Route::get('/profile', [AuthController::class, 'user']); // Alias for profile
+    Route::get('/profile', [ProfileController::class, 'show']);
+    Route::put('/profile', [ProfileController::class, 'update']);
 
+    // Comments
     Route::post('/articles/{id}/comments', [CommentController::class, 'store']);
+    Route::put('/comments/{id}', [CommentController::class, 'update']);
     Route::delete('/comments/{id}', [CommentController::class, 'destroy']);
 
+    // Likes
     Route::post('/comments/{id}/likes', [LikeController::class, 'toggle']);
 
+    // Topics
     Route::post('/topics', [TopicController::class, 'store']);
+    Route::put('/topics/{id}', [TopicController::class, 'update']);
+    Route::delete('/topics/{id}', [TopicController::class, 'destroy']);
 });
