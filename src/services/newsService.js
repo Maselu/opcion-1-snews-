@@ -1,16 +1,16 @@
-import api, { endpoints } from './api';
+import api from './api';
 
 /**
- * Service for fetching news from different categories
+ * Service for fetching news articles
  */
 const newsService = {
   /**
    * Fetch general news
    * @returns {Promise} Promise with news data
    */
-  getGeneralNews: async () => {
+  getGeneral: async () => {
     try {
-      const response = await api.get(endpoints.news.general);
+      const response = await api.get('/articles?category=General&limit=6');
       return response.data;
     } catch (error) {
       console.error('Error fetching general news:', error);
@@ -19,12 +19,12 @@ const newsService = {
   },
 
   /**
-   * Fetch science and technology news
+   * Fetch science news
    * @returns {Promise} Promise with news data
    */
-  getScienceNews: async () => {
+  getScience: async () => {
     try {
-      const response = await api.get(endpoints.news.science);
+      const response = await api.get('/articles?category=Ciencia&limit=6');
       return response.data;
     } catch (error) {
       console.error('Error fetching science news:', error);
@@ -36,9 +36,9 @@ const newsService = {
    * Fetch sports news
    * @returns {Promise} Promise with news data
    */
-  getSportsNews: async () => {
+  getSports: async () => {
     try {
-      const response = await api.get(endpoints.news.sports);
+      const response = await api.get('/articles?category=Deportes&limit=6');
       return response.data;
     } catch (error) {
       console.error('Error fetching sports news:', error);
@@ -50,9 +50,9 @@ const newsService = {
    * Fetch entertainment news
    * @returns {Promise} Promise with news data
    */
-  getEntertainmentNews: async () => {
+  getEntertainment: async () => {
     try {
-      const response = await api.get(endpoints.news.entertainment);
+      const response = await api.get('/articles?category=Entretenimiento&limit=6');
       return response.data;
     } catch (error) {
       console.error('Error fetching entertainment news:', error);

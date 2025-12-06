@@ -1,7 +1,7 @@
-import api, { endpoints } from './api';
+import api from './api';
 
 /**
- * Service for fetching weather data from AEMET API
+ * Service for fetching weather data
  */
 const weatherService = {
   /**
@@ -10,7 +10,7 @@ const weatherService = {
    */
   getForecast: async () => {
     try {
-      const response = await api.get(endpoints.weather.forecast);
+      const response = await api.get('/weather?location=Madrid');
       return response.data;
     } catch (error) {
       console.error('Error fetching weather forecast:', error);
@@ -20,12 +20,12 @@ const weatherService = {
 
   /**
    * Fetch weather by location
-   * @param {string} location - Location code
+   * @param {string} location - Location name (e.g., "Madrid")
    * @returns {Promise} Promise with weather data
    */
   getWeatherByLocation: async (location) => {
     try {
-      const response = await api.get(endpoints.weather.byLocation(location));
+      const response = await api.get(`/weather?location=${location}`);
       return response.data;
     } catch (error) {
       console.error(`Error fetching weather for location ${location}:`, error);

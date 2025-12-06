@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Cloud, CloudRain, Sun, Wind } from 'lucide-react';
-import weatherService from '../services/weatherService';
+import api from '../services/api';
 
-const WeatherWidget = ({ location = '28079' }) => {
+const WeatherWidget = ({ location = 'Madrid' }) => {
   const [weather, setWeather] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -11,8 +11,8 @@ const WeatherWidget = ({ location = '28079' }) => {
     const fetchWeather = async () => {
       try {
         setLoading(true);
-        const data = await weatherService.getWeatherByLocation(location);
-        setWeather(data);
+        const response = await api.get(`/weather?location=${location}`);
+        setWeather(response.data);
       } catch (err) {
         setError('Failed to load weather data');
         console.error('Error fetching weather:', err);
@@ -33,6 +33,7 @@ const WeatherWidget = ({ location = '28079' }) => {
       case 'partly cloudy':
         return <Cloud className="text-gray-500" size={24} />;
       case 'rain':
+      case 'rainy':
       case 'showers':
         return <CloudRain className="text-blue-500" size={24} />;
       default:
@@ -61,56 +62,33 @@ const WeatherWidget = ({ location = '28079' }) => {
     );
   }
 
-  // Mock data for development until backend is ready
-  const mockWeather = weather || {
-    location: 'Madrid',
-    temperature: '22°C',
-    condition: 'Sunny',
-    humidity: '45%',
-    wind: '10 km/h',
-    forecast: [
-      { day: 'Hoy', temp: '22°C', condition: 'Sunny' },
-      { day: 'Mañana', temp: '24°C', condition: 'Partly Cloudy' },
-      { day: 'Miércoles', temp: '20°C', condition: 'Rain' }
-    ]
-  };
-
   return (
     <div className="p-4 bg-white rounded-lg shadow-md">
       <h2 className="text-xl font-bold mb-4">El Tiempo</h2>
-      
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center">
-          {getWeatherIcon(mockWeather.condition)}
-          <span className="ml-2 text-2xl font-semibold">{mockWeather.temperature}</span>
-        </div>
-        <div className="text-right">
-          <p className="font-medium">{mockWeather.location}</p>
-          <p className="text-sm text-gray-500">{mockWeather.condition}</p>
-        </div>
-      </div>
-      
-      <div className="grid grid-cols-2 gap-2 text-sm">
-        <div>
-          <span className="text-gray-500">Humedad:</span> {mockWeather.humidity}
-        </div>
-        <div>
-          <span className="text-gray-500">Viento:</span> {mockWeather.wind}
-        </div>
-      </div>
-      
-      <div className="mt-4 border-t pt-3">
-        <h3 className="font-medium mb-2">Pronóstico</h3>
-        <div className="grid grid-cols-3 gap-2">
-          {mockWeather.forecast.map((day, index) => (
-            <div key={index} className="text-center p-2 bg-gray-50 rounded">
-              <p className="font-medium">{day.day}</p>
-              <div className="my-1">{getWeatherIcon(day.condition)}</div>
-              <p>{day.temp}</p>
+
+      {weather && (
+        <>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center">
+              {getWeatherIcon(weather.condition)}
+              <span className="ml-2 text-2xl font-semibold">{Math.round(weather.temp_c)}°C</span>
             </div>
-          ))}
-        </div>
-      </div>
+            <div className="text-right">
+              <p className="font-medium">{weather.location}</p>
+              <p className="text-sm text-gray-500">{weather.condition}</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 text-sm">
+            <div>
+              <span className="text-gray-500">Humedad:</span> {weather.humidity}%
+            </div>
+            <div>
+              <span className="text-gray-500">Viento:</span> {weather.wind_kph} km/h
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };
