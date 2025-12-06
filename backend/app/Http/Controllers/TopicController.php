@@ -10,7 +10,11 @@ class TopicController extends Controller
 {
     public function index()
     {
-        $topics = Topic::with('user')->orderBy('created_at', 'desc')->paginate(15);
+        $topics = Topic::with(['user', 'article'])
+            ->withCount('comments')
+            ->latest()
+            ->paginate(15);
+
         return response()->json($topics);
     }
 

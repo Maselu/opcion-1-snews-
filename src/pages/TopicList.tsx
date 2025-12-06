@@ -1,14 +1,70 @@
-import { useFetch } from '../hooks/useFetch';
-import { Topic } from '../types';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
+import api from '../services/api';
 import { Loader2, MessageSquare, User, Clock, Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 
+interface Topic {
+    id: number;
+    title: string;
+    description: string | null;
+    user_id: string;
+    article_id: number | null;
+    created_at: string;
+    comments_count: number;
+    user: {
+        id: string;
+        name: string;
+        avatar_url: string | null;
+    };
+    article?: {
+        id: number;
+        title: string;
+    };
+}
+
+interface PaginatedResponse {
+    data: Topic[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+}
+
 export default function TopicList() {
+    const navigate = useNavigate();
     const { user } = useAuth();
-    const { data: topics, loading, error } = useFetch<Topic[]>('/topics');
+    const [topics, setTopics] = useState<Topic[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+
+    useEffect(() => {
+        fetchTopics();
+    }, []);
+
+    const fetchTopics = async () => {
+        try {
+            setLoading(true);
+            setError('');
+            const response = await api.get<PaginatedResponse>('/topics');
+
+            // Handle paginated response
+            if (response.data.data) {
+                setTopics(response.data.data);
+            } else {
+                // Handle non-paginated response (just in case)
+                setTopics(response.data as any);
+            }
+        } catch (err: any) {
+            console.error('Error fetching topics:', err);
+            setError(err.response?.data?.message || 'Error al cargar los temas');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     if (loading) {
         return (
@@ -21,11 +77,15 @@ export default function TopicList() {
     if (error) {
         return (
             <div className="text-center py-12">
-                <h3 className="mt-2 text-sm font-semibold text-gray-900">Error loading topics</h3>
-                <p className="mt-1 text-sm text-gray-500">{error.message}</p>
+                <h3 className="mt-2 text-sm font-semibold text-gray-900">Error al cargar temas</h3>
+                <p className="mt-1 text-sm text-gray-500">{error}</p>
             </div>
         );
     }
+
+    const getAvatarUrl = (user: Topic['user']) => {
+        return user.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random&size=40`;
+    };
 
     return (
         <div className="space-y-6">
@@ -63,8 +123,12 @@ export default function TopicList() {
                                     )}
                                     <div className="mt-3 flex items-center space-x-4 text-sm text-gray-500">
                                         <div className="flex items-center">
-                                            <User className="h-4 w-4 mr-1" />
-                                            <span>Usuario</span>
+                                            <img
+                                                src={getAvatarUrl(topic.user)}
+                                                alt={topic.user.name}
+                                                className="h-6 w-6 rounded-full mr-2"
+                                            />
+                                            <span className="font-medium text-gray-700">{topic.user.name}</span>
                                         </div>
                                         <div className="flex items-center">
                                             <Clock className="h-4 w-4 mr-1" />
@@ -75,19 +139,19 @@ export default function TopicList() {
                                                 })}
                                             </span>
                                         </div>
-                                        {topic.article_id && (
+                                        {topic.article && (
                                             <Link
                                                 to={`/articles/${topic.article_id}`}
                                                 className="text-blue-600 hover:text-blue-700 font-medium"
                                             >
-                                                Ver artículo relacionado
+                                                📰 Ver artículo relacionado
                                             </Link>
                                         )}
                                     </div>
                                 </div>
                                 <div className="ml-6 flex items-center space-x-2 text-gray-500">
                                     <MessageSquare className="h-5 w-5" />
-                                    <span className="text-sm font-medium">0</span>
+                                    <span className="text-sm font-medium">{topic.comments_count || 0}</span>
                                 </div>
                             </div>
                         </div>
@@ -101,6 +165,15 @@ export default function TopicList() {
                                 ? 'Sé el primero en iniciar una discusión'
                                 : 'Inicia sesión para crear un tema'}
                         </p>
+                        {user && (
+                            <Link
+                                to="/topics/new"
+                                className="mt-4 inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                            >
+                                <Plus className="h-5 w-5 mr-2" />
+                                Crear Primer Tema
+                            </Link>
+                        )}
                     </div>
                 )}
             </div>
