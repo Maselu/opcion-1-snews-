@@ -36,6 +36,23 @@ class CommentController extends Controller
         return response()->json($comment->load('user'), 201);
     }
 
+    public function storeTopicComment(Request $request, $topicId)
+    {
+        $validated = $request->validate([
+            'content' => 'required|string',
+            'parent_comment_id' => 'nullable|exists:comments,id',
+        ]);
+
+        $comment = Comment::create([
+            'user_id' => Auth::id(),
+            'topic_id' => $topicId,
+            'parent_comment_id' => $validated['parent_comment_id'] ?? null,
+            'content' => $validated['content'],
+        ]);
+
+        return response()->json($comment->load('user'), 201);
+    }
+
     public function destroy($id)
     {
         $comment = Comment::findOrFail($id);
@@ -69,4 +86,3 @@ class CommentController extends Controller
         return response()->json($comment->load('user'));
     }
 }
-

@@ -38,7 +38,16 @@ class TopicController extends Controller
 
     public function show($id)
     {
-        $topic = Topic::with(['user', 'comments.user'])->findOrFail($id);
+        $topic = Topic::with([
+            'user',
+            'article',
+            'comments' => function ($query) {
+                $query->whereNull('parent_comment_id')
+                    ->with(['user', 'likes', 'replies.user', 'replies.likes'])
+                    ->orderBy('created_at', 'desc');
+            }
+        ])->findOrFail($id);
+
         return response()->json($topic);
     }
 

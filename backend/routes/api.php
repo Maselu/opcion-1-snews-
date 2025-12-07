@@ -49,6 +49,7 @@ Route::middleware('auth:supabase')->group(function () {
 
     // Topics
     Route::post('/topics', [TopicController::class, 'store']);
+    Route::post('/topics/{id}/comments', [CommentController::class, 'storeTopicComment']);
     Route::put('/topics/{id}', [TopicController::class, 'update']);
     Route::delete('/topics/{id}', [TopicController::class, 'destroy']);
 });

@@ -7,6 +7,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Profile from './pages/Profile';
 import TopicList from './pages/TopicList';
+import TopicDetail from './pages/TopicDetail';
 import NewTopic from './pages/NewTopic';
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
           <Route path="profile" element={<Profile />} />
           <Route path="topics" element={<TopicList />} />
           <Route path="topics/new" element={<NewTopic />} />
+          <Route path="topics/:id" element={<TopicDetail />} />
         </Route>
       </Routes>
     </AuthProvider>
