@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import api from '../services/api';
 import { Loader2, ArrowLeft, User, Clock, MessageSquare } from 'lucide-react';
@@ -42,6 +42,7 @@ interface Topic {
 export default function TopicDetail() {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+    const location = useLocation();
     const { user } = useAuth();
     const [topic, setTopic] = useState<Topic | null>(null);
     const [loading, setLoading] = useState(true);
@@ -95,7 +96,7 @@ export default function TopicDetail() {
 
     const handleLike = async (commentId: number) => {
         if (!user) {
-            navigate('/login');
+            navigate('/login', { state: { from: location } });
             return;
         }
 
@@ -223,7 +224,11 @@ export default function TopicDetail() {
                 ) : (
                     <div className="mb-8 p-4 bg-gray-50 border border-gray-200 rounded-lg text-center">
                         <p className="text-gray-600">
-                            <Link to="/login" className="text-blue-600 hover:text-blue-700 font-medium">
+                            <Link
+                                to="/login"
+                                state={{ from: location }}
+                                className="text-blue-600 hover:text-blue-700 font-medium"
+                            >
                                 Inicia sesión
                             </Link>{' '}
                             para participar en la discusión
@@ -259,8 +264,8 @@ export default function TopicDetail() {
                                             <button
                                                 onClick={() => handleLike(comment.id)}
                                                 className={`flex items-center space-x-1 text-sm ${comment.likes.some((like: any) => like.user_id === user?.id)
-                                                        ? 'text-red-600'
-                                                        : 'text-gray-500 hover:text-red-600'
+                                                    ? 'text-red-600'
+                                                    : 'text-gray-500 hover:text-red-600'
                                                     } transition-colors`}
                                             >
                                                 <span>{comment.likes.some((like: any) => like.user_id === user?.id) ? '❤️' : '🤍'}</span>

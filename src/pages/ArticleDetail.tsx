@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import { useFetch } from '../hooks/useFetch';
 import { Article, Comment } from '../types';
 import { useAuth } from '../hooks/useAuth';
@@ -11,6 +11,7 @@ import { es } from 'date-fns/locale';
 
 export default function ArticleDetail() {
   const { id } = useParams<{ id: string }>();
+  const location = useLocation();
   const { data: article, loading, error } = useFetch<Article>(`/articles/${id}`);
   const { user } = useAuth();
 
@@ -181,7 +182,11 @@ export default function ArticleDetail() {
         ) : (
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center mb-8">
             <p className="text-gray-700">
-              <Link to="/login" className="text-blue-600 hover:text-blue-700 font-semibold">
+              <Link
+                to="/login"
+                state={{ from: location }}
+                className="text-blue-600 hover:text-blue-700 font-semibold"
+              >
                 Inicia sesión
               </Link>{' '}
               para dejar un comentario

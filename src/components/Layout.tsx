@@ -3,6 +3,7 @@ import { useAuth } from '../hooks/useAuth';
 import { LogIn, LogOut, Search, Menu, X } from 'lucide-react';
 import { useState } from 'react';
 import WeatherWidget from './WeatherWidget';
+import Footer from './Footer';
 
 export default function Layout() {
     const { user, signOut } = useAuth();
@@ -114,16 +115,7 @@ export default function Layout() {
             </div>
 
             {/* Footer */}
-            <footer className="bg-white border-t border-gray-200 mt-12 py-8">
-                <div className="max-w-6xl mx-auto px-4 text-center text-gray-500 text-sm">
-                    <p>&copy; {new Date().getFullYear()} SNews. Todos los derechos reservados.</p>
-                    <div className="mt-2 space-x-4">
-                        <a href="#" className="hover:text-gray-900">Privacidad</a>
-                        <a href="#" className="hover:text-gray-900">Términos</a>
-                        <a href="#" className="hover:text-gray-900">Contacto</a>
-                    </div>
-                </div>
-            </footer>
+            <Footer />
         </div>
     );
 }

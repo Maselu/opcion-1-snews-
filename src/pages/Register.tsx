@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import api from '../services/api';
 import { Loader2, Github, Linkedin } from 'lucide-react';
 
 export default function Register() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
@@ -58,9 +59,12 @@ export default function Register() {
             avatar_url: null,
           });
 
-          // Success - redirect to login or home
+          // Success - redirect to login with preserved state
           navigate('/login', {
-            state: { message: 'Cuenta creada exitosamente. Por favor inicia sesión.' }
+            state: {
+              message: 'Cuenta creada exitosamente. Por favor inicia sesión.',
+              from: location.state?.from
+            }
           });
         } catch (syncError: any) {
           console.error('Error syncing user to database:', syncError);
@@ -83,7 +87,11 @@ export default function Register() {
             <h2 className="text-3xl font-bold text-gray-900">Crear una cuenta</h2>
             <p className="mt-2 text-sm text-gray-600">
               ¿Ya tienes una cuenta?{' '}
-              <Link to="/login" className="font-medium text-blue-600 hover:text-blue-500">
+              <Link
+                to="/login"
+                state={{ from: location.state?.from }}
+                className="font-medium text-blue-600 hover:text-blue-500"
+              >
                 Inicia sesión
               </Link>
             </p>

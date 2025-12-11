@@ -16,6 +16,7 @@ export default function Login() {
   });
 
   const successMessage = location.state?.message;
+  const from = location.state?.from?.pathname || '/';
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -31,7 +32,8 @@ export default function Login() {
 
     try {
       await signIn(formData.email, formData.password);
-      navigate('/');
+      // Redirect to origin page or home
+      navigate(from, { replace: true });
     } catch (err: any) {
       setError(err.message || 'Error al iniciar sesión');
     } finally {
@@ -48,7 +50,11 @@ export default function Login() {
             <h2 className="text-3xl font-bold text-gray-900">Iniciar sesión</h2>
             <p className="mt-2 text-sm text-gray-600">
               ¿No tienes una cuenta?{' '}
-              <Link to="/register" className="font-medium text-blue-600 hover:text-blue-500">
+              <Link
+                to="/register"
+                state={{ from: location.state?.from }}
+                className="font-medium text-blue-600 hover:text-blue-500"
+              >
                 Regístrate
               </Link>
             </p>
