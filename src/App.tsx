@@ -9,6 +9,7 @@ import Profile from './pages/Profile';
 import TopicList from './pages/TopicList';
 import TopicDetail from './pages/TopicDetail';
 import NewTopic from './pages/NewTopic';
+import WeatherPage from './pages/WeatherPage';
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
           <Route path="topics" element={<TopicList />} />
           <Route path="topics/new" element={<NewTopic />} />
           <Route path="topics/:id" element={<TopicDetail />} />
+          <Route path="weather" element={<WeatherPage />} />
         </Route>
       </Routes>
     </AuthProvider>

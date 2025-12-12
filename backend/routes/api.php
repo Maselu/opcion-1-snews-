@@ -28,6 +28,8 @@ Route::get('/articles/{id}/comments', [CommentController::class, 'index']);
 Route::get('/topics', [TopicController::class, 'index']);
 Route::get('/topics/{id}', [TopicController::class, 'show']);
 Route::get('/weather', [WeatherController::class, 'current']);
+Route::get('/weather/detailed', [WeatherController::class, 'detailed']);
+Route::get('/weather/cities', [WeatherController::class, 'cities']);
 
 // Auth Routes (Public)
 Route::post('/auth/register', [AuthController::class, 'register']);

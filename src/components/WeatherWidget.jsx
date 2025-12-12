@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Cloud, CloudRain, Sun, Wind } from 'lucide-react';
 import api from '../services/api';
 
@@ -63,7 +64,10 @@ const WeatherWidget = ({ location = 'Madrid' }) => {
   }
 
   return (
-    <div className="p-4 bg-white rounded-lg shadow-md">
+    <Link
+      to="/weather"
+      className="block p-4 bg-white rounded-lg shadow-md hover:shadow-lg transition-all hover:scale-105 cursor-pointer"
+    >
       <h2 className="text-xl font-bold mb-4">El Tiempo</h2>
 
       {weather && (
@@ -89,7 +93,7 @@ const WeatherWidget = ({ location = 'Madrid' }) => {
           </div>
         </>
       )}
-    </div>
+    </Link>
   );
 };
 
