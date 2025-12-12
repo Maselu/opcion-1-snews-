@@ -27,7 +27,7 @@ export default function Register() {
     e.preventDefault();
     setError('');
 
-    // Validation
+    // Validación
     if (formData.password !== formData.confirmPassword) {
       setError('Las contraseñas no coinciden');
       return;
@@ -41,7 +41,7 @@ export default function Register() {
     setLoading(true);
 
     try {
-      // Step 1: Register with Supabase Auth
+      // Paso 1: Registrar con Supabase Auth
       const { data, error: signUpError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -50,7 +50,7 @@ export default function Register() {
       if (signUpError) throw signUpError;
 
       if (data.user) {
-        // Step 2: CRITICAL - Immediately sync to public.users table
+        // Paso 2: CRITICAL - Immediately sync to public.users table
         try {
           await api.post('/auth/register', {
             id: data.user.id,
@@ -59,7 +59,7 @@ export default function Register() {
             avatar_url: null,
           });
 
-          // Success - redirect to login with preserved state
+          // Éxito - redirigir a la página de inicio de sesión con el estado preservado
           navigate('/login', {
             state: {
               message: 'Cuenta creada exitosamente. Por favor inicia sesión.',
@@ -184,14 +184,14 @@ export default function Register() {
           <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
-              disabled
+              
               className="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Github className="h-5 w-5 text-gray-700" />
             </button>
             <button
               type="button"
-              disabled
+              
               className="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Linkedin className="h-5 w-5 text-blue-600" />

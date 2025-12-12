@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Newspaper, TrendingUp, MessageSquare } from 'lucide-react';
 
 export function Sidebar() {
-  // Mock popular topics
+  // Temas populares
   const popularTopics = [
     { id: 1, title: 'Elecciones 2024', count: 45 },
     { id: 2, title: 'Cambio climático', count: 32 },

@@ -51,11 +51,11 @@ export default function TopicList() {
             setError('');
             const response = await api.get<PaginatedResponse>('/topics');
 
-            // Handle paginated response
+            // Manejar respuesta paginada
             if (response.data.data) {
                 setTopics(response.data.data);
             } else {
-                // Handle non-paginated response (just in case)
+                // Manejar respuesta no paginada (solo por precaución)
                 setTopics(response.data as any);
             }
         } catch (err: any) {

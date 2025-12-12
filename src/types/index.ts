@@ -19,7 +19,7 @@ export interface Article {
     source?: string;
     published_at: string;
     category?: Category;
-    comments_count?: number; // Optional if we add count
+    comments_count?: number; //Opcional si añadimos recuento                                            
 }
 
 export interface Comment {

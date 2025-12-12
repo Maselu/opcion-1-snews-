@@ -31,7 +31,7 @@ export default function Home() {
       setError('');
 
       if (selectedCategory) {
-        // Fetch only selected category
+        // Obtener solo la categoría seleccionada
         const response = await api.get(`/articles?category=${selectedCategory}&limit=6`);
         const articles = response.data.data || response.data;
 
@@ -42,7 +42,7 @@ export default function Home() {
         }]);
         setHeroArticles([]);
       } else {
-        // Fetch all categories
+        // Obtener todas las categorías
         const categoriesData = [
           { id: 1, name: 'General' },
           { id: 2, name: 'Ciencia' },
@@ -50,12 +50,12 @@ export default function Home() {
           { id: 4, name: 'Entretenimiento' }
         ];
 
-        // Fetch hero articles (3 most recent)
+        // Obtener las 3 artículos más recientes
         const heroResponse = await api.get('/articles?limit=3');
         const allArticles = heroResponse.data.data || heroResponse.data;
         setHeroArticles(allArticles.slice(0, 3));
 
-        // Fetch articles for each category
+        // Obtener artículos para cada categoría
         const categoryPromises = categoriesData.map(async (cat) => {
           const response = await api.get(`/articles?category=${cat.name}&limit=6`);
           const articles = response.data.data || response.data;
@@ -170,7 +170,7 @@ export default function Home() {
       {!selectedCategory && (
         <div className="flex items-center space-x-4 border-b border-gray-200">
           <Link
-            to="/"
+            to="/?category=Noticias"
             className="px-4 py-2 font-medium text-blue-600 border-b-2 border-blue-600"
           >
             📰 Noticias

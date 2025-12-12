@@ -39,7 +39,7 @@ class ImportNews extends Command
                 $count = 0;
                 foreach ($xml->channel->item as $item) {
                     if ($count >= 6)
-                        break; // Limit to 6 articles per category
+                        break; // Límite de 6 artículos por categoría
 
                     $title = (string) $item->title;
                     $link = (string) $item->link;
@@ -48,10 +48,10 @@ class ImportNews extends Command
                     $source = (string) $item->source;
 
                     Article::updateOrCreate(
-                        ['title' => $title], // Avoid duplicates by title
+                        ['title' => $title], // Evite duplicados por título
                         [
                             'category_id' => $category->id,
-                            'content' => $description, // RSS description is short, usually we'd scrape full content but this is enough for demo
+                            'content' => $description, // La descripción RSS es breve, normalmente extraeríamos el contenido completo, pero esto es suficiente para la demostración.
                             'source' => $source ?: 'Google News',
                             'published_at' => Carbon::parse($pubDate),
                         ]

@@ -72,7 +72,7 @@ export default function TopicDetail() {
             setNewComment('');
             setReplyTo(null);
             setReplyToName('');
-            // Refresh to get updated comments
+            // Actualizar para obtener comentarios actualizados
             fetchTopic();
         } catch (err: any) {
             console.error('Error posting comment:', err);
@@ -136,7 +136,7 @@ export default function TopicDetail() {
         );
     }
 
-    // Build hierarchical comment tree from flat list
+    // Construir un árbol de comentarios jerárquico a partir de una lista plana
     const allComments = topic.comments || [];
     const commentTree = buildCommentTree(allComments);
 

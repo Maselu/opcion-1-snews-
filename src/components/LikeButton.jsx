@@ -12,7 +12,7 @@ export function LikeButton({ initialLikes = 0 }) {
       setLiked(!liked);
       setLikes(liked ? likes - 1 : likes + 1);
       
-      // Reset animation state after animation completes
+      // Restablecer el estado de la animación una vez finalizada
       setTimeout(() => {
         setAnimating(false);
       }, 1000);

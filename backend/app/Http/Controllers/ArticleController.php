@@ -11,7 +11,7 @@ class ArticleController extends Controller
     {
         $query = Article::with('category')->orderBy('published_at', 'desc');
 
-        // Filter by category name
+        // Filtrar por nombre de categoría
         if ($request->has('category')) {
             $categoryName = $request->input('category');
             $query->whereHas('category', function ($q) use ($categoryName) {
@@ -19,7 +19,7 @@ class ArticleController extends Controller
             });
         }
 
-        // Limit results
+        // Limitar resultados
         $limit = $request->input('limit', 10);
 
         if ($limit) {
@@ -27,18 +27,18 @@ class ArticleController extends Controller
             return response()->json(['data' => $articles]);
         }
 
-        // Paginate if no limit
+        // Paginar si no hay límite
         $articles = $query->paginate(10);
         return response()->json($articles);
     }
 
     public function show($id)
     {
-        // Return ALL comments in flat list for frontend tree building
+        // Devuelve TODOS los comentarios en una lista plana para la creación del árbol frontend
         $article = Article::with([
             'category',
             'comments' => function ($query) {
-                // Get ALL comments (not just root level)
+                // Obtiene TODOS los comentarios (no solo el nivel raíz)
                 $query->with(['user', 'likes'])
                     ->orderBy('created_at', 'desc');
             }

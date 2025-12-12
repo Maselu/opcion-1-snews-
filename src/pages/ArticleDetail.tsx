@@ -22,7 +22,7 @@ export default function ArticleDetail() {
   const [submitting, setSubmitting] = useState(false);
   const [comments, setComments] = useState<Comment[]>([]);
 
-  // Update comments when article loads
+  // Actualizar los comentarios cuando se carga el artículo
   useState(() => {
     if (article) {
       setComments((article as any).comments as Comment[] || []);
@@ -42,7 +42,7 @@ export default function ArticleDetail() {
       setCommentContent('');
       setReplyTo(null);
       setReplyToName('');
-      // Refresh article data to get updated comments
+      // Recargar los datos del artículo para obtener los comentarios actualizados
       window.location.reload();
     } catch (error) {
       console.error('Error posting comment', error);
@@ -97,7 +97,7 @@ export default function ArticleDetail() {
     );
   }
 
-  // Build hierarchical comment tree from flat list
+  // Construir árbol jerárquico de comentarios a partir de la lista plana
   const allComments = (article as any)?.comments as Comment[] || [];
   const commentTree = buildCommentTree(allComments);
 

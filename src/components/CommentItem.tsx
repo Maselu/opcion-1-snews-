@@ -25,7 +25,7 @@ export default function CommentItem({ comment, onReply, onDelete, onEdit }: Comm
         try {
             const { data } = await api.post(`/comments/${comment.id}/likes`);
             setLiked(data.liked);
-            // Ensure likes never go negative
+            // Asegúrese de que los "me gusta" nunca se vuelvan negativos
             setLikesCount(prev => Math.max(0, data.liked ? prev + 1 : prev - 1));
         } catch (error) {
             console.error('Error toggling like', error);
@@ -139,7 +139,7 @@ export default function CommentItem({ comment, onReply, onDelete, onEdit }: Comm
                     </div>
                 )}
 
-                {/* Recursive replies */}
+                {/* Respuestas recursivas */}
                 {comment.replies && comment.replies.length > 0 && (
                     <div className="pl-6 mt-4 border-l-2 border-gray-100">
                         {comment.replies.map(reply => (

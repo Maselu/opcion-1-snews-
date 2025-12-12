@@ -12,31 +12,31 @@ export const buildCommentTree = (flatComments: Comment[]): Comment[] => {
         return [];
     }
 
-    // Create a map for quick lookup
+    // Crear un mapa para búsqueda rápida
     const commentMap: { [key: number]: Comment } = {};
     const tree: Comment[] = [];
 
-    // Step 1: Initialize map and ensure each comment has a replies array
+    // Paso 1: Inicializar el mapa y asegurarse de que cada comentario tenga un array de respuestas
     flatComments.forEach(comment => {
         commentMap[comment.id] = { ...comment, replies: [] };
     });
 
-    // Step 2: Build the hierarchy
+    // Paso 2: Construir la jerarquía
     flatComments.forEach(comment => {
         const commentWithReplies = commentMap[comment.id];
 
         if (comment.parent_comment_id) {
-            // This is a reply - add it to parent's replies array
+            // Esta es una respuesta - agregarla al array de respuestas del padre
             const parent = commentMap[comment.parent_comment_id];
             if (parent) {
                 parent.replies = parent.replies || [];
                 parent.replies.push(commentWithReplies);
             } else {
-                // Parent not found - treat as root (edge case)
+                // Padre no encontrado - tratar como raíz (caso especial)
                 tree.push(commentWithReplies);
             }
         } else {
-            // This is a root comment
+            // Este es un comentario raíz
             tree.push(commentWithReplies);
         }
     });

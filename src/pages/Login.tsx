@@ -32,7 +32,7 @@ export default function Login() {
 
     try {
       await signIn(formData.email, formData.password);
-      // Redirect to origin page or home
+      //Redirigir a la página de origen o inicio
       navigate(from, { replace: true });
     } catch (err: any) {
       setError(err.message || 'Error al iniciar sesión');
@@ -146,14 +146,14 @@ export default function Login() {
           <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
-              disabled
+              
               className="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Github className="h-5 w-5 text-gray-700" />
             </button>
             <button
               type="button"
-              disabled
+              
               className="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Linkedin className="h-5 w-5 text-blue-600" />

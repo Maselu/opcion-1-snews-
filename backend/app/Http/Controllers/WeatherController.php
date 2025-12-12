@@ -9,7 +9,7 @@ use Carbon\Carbon;
 
 class WeatherController extends Controller
 {
-    // Spanish cities coordinates
+    // Coordenadas de las ciudades españolas
     private static $cities = [
         'Madrid' => ['lat' => 40.4168, 'lon' => -3.7038],
         'Barcelona' => ['lat' => 41.3874, 'lon' => 2.1686],
@@ -32,7 +32,7 @@ class WeatherController extends Controller
     {
         $location = $request->input('location', 'Madrid');
 
-        // Check cache (valid for 1 hour)
+        // Comprobar caché (válido por 1 hora)
         $cached = WeatherReport::where('location', $location)
             ->where('fetched_at', '>=', Carbon::now()->subHour())
             ->first();
@@ -41,7 +41,7 @@ class WeatherController extends Controller
             return response()->json($cached->data);
         }
 
-        // Get coordinates for the city
+        // Obtener coordenadas para la ciudad
         $coords = self::$cities[$location] ?? self::$cities['Madrid'];
 
         try {
@@ -56,7 +56,7 @@ class WeatherController extends Controller
                 $apiData = $response->json();
                 $current = $apiData['current'];
 
-                // Map WMO codes to conditions
+                // Asignar condiciones basadas en el código WMO
                 $condition = 'Sunny';
                 $code = $current['weather_code'];
                 if ($code > 0 && $code <= 3)
@@ -86,7 +86,7 @@ class WeatherController extends Controller
                 return response()->json($data);
             }
         } catch (\Exception $e) {
-            // Fallback if API fails
+            // Fallback si la API falla
         }
 
         // Fallback Mock Data
@@ -106,7 +106,7 @@ class WeatherController extends Controller
     {
         $location = $request->input('location', 'Madrid');
 
-        // Check cache (valid for 1 hour)
+        // Comprobar caché (válido por 1 hora)
         $cacheKey = "weather_detailed_{$location}";
         $cached = WeatherReport::where('location', $cacheKey)
             ->where('fetched_at', '>=', Carbon::now()->subHour())
@@ -116,7 +116,7 @@ class WeatherController extends Controller
             return response()->json($cached->data);
         }
 
-        // Get coordinates for the city
+        // Obtener coordenadas para la ciudad
         $coords = self::$cities[$location] ?? self::$cities['Madrid'];
 
         try {

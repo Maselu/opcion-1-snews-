@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 export function HeroCarousel({ articles = [] }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   
-  // Auto-advance carousel
+  // Carrusel de avance automático
   useEffect(() => {
     if (articles.length <= 1) return;
     
@@ -28,7 +28,7 @@ export function HeroCarousel({ articles = [] }) {
     );
   };
 
-  // If no articles, show placeholder
+  // Si no hay artículos, mostrar placeholder
   if (!articles || articles.length === 0) {
     return (
       <div className="relative h-96 bg-gray-200 rounded-lg animate-pulse flex items-center justify-center">

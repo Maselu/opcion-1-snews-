@@ -25,7 +25,7 @@ class ProfileController extends Controller
             return response()->json(['error' => 'User not found'], 404);
         }
 
-        // Calculate likes received on user's comments
+        // Calcular likes recibidos en los comentarios del usuario
         $likesReceived = $userData->comments()
             ->withCount('likes')
             ->get()

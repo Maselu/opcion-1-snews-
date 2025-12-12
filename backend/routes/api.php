@@ -21,7 +21,7 @@ use App\Http\Controllers\ProfileController;
 |
 */
 
-// Public Routes
+// Rutas públicas
 Route::get('/articles', [ArticleController::class, 'index']);
 Route::get('/articles/{id}', [ArticleController::class, 'show']);
 Route::get('/articles/{id}/comments', [CommentController::class, 'index']);
@@ -31,17 +31,17 @@ Route::get('/weather', [WeatherController::class, 'current']);
 Route::get('/weather/detailed', [WeatherController::class, 'detailed']);
 Route::get('/weather/cities', [WeatherController::class, 'cities']);
 
-// Auth Routes (Public)
+// Rutas de autenticación (públicas)
 Route::post('/auth/register', [AuthController::class, 'register']);
 
-// Protected Routes
+// Rutas protegidas
 Route::middleware('auth:supabase')->group(function () {
     // User & Profile
     Route::get('/user', [AuthController::class, 'user']);
     Route::get('/profile', [ProfileController::class, 'show']);
     Route::put('/profile', [ProfileController::class, 'update']);
 
-    // Comments
+    // Comentarios
     Route::post('/articles/{id}/comments', [CommentController::class, 'store']);
     Route::put('/comments/{id}', [CommentController::class, 'update']);
     Route::delete('/comments/{id}', [CommentController::class, 'destroy']);
@@ -49,7 +49,7 @@ Route::middleware('auth:supabase')->group(function () {
     // Likes
     Route::post('/comments/{id}/likes', [LikeController::class, 'toggle']);
 
-    // Topics
+    // Temas
     Route::post('/topics', [TopicController::class, 'store']);
     Route::post('/topics/{id}/comments', [CommentController::class, 'storeTopicComment']);
     Route::put('/topics/{id}', [TopicController::class, 'update']);

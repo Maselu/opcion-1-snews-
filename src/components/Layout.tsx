@@ -19,7 +19,7 @@ export default function Layout() {
                         <div className="flex items-center space-x-8">
                             <Link to="/" className="text-2xl font-bold tracking-tight">SNews</Link>
                             <nav className="hidden md:flex space-x-6 text-sm font-medium">
-                                <Link to="/" className="hover:text-blue-200 transition-colors">Noticias</Link>
+                                {/*<Link to="/?category=Noticias" className="hover:text-blue-200 transition-colors">Noticias</Link>*/}
                                 <Link to="/?category=Deportes" className="hover:text-blue-200 transition-colors">Deportes</Link>
                                 <Link to="/?category=Ciencia" className="hover:text-blue-200 transition-colors">Ciencia</Link>
                                 <Link to="/topics" className="hover:text-blue-200 transition-colors">Foro</Link>

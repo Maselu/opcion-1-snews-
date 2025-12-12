@@ -7,14 +7,14 @@ const api = axios.create({
         'Content-Type': 'application/json',
         'Accept': 'application/json',
     },
-    withCredentials: false // Set to true only if using cookies
+    withCredentials: false // Establezca como verdadero solo si se utilizan cookies
 });
 
-// Request interceptor to inject JWT token
+// Solicitar al interceptor que inyecte el token JWT
 api.interceptors.request.use(
     async (config) => {
         try {
-            // 1. Get fresh session from Supabase
+            // 1. Obtener sesión fresca de Supabase
             const { data, error } = await supabase.auth.getSession();
 
             if (error) {
@@ -24,7 +24,7 @@ api.interceptors.request.use(
 
             const token = data?.session?.access_token;
 
-            // 2. Inject token if it exists
+            // 2. Inyectar token si existe
             if (token) {
                 config.headers.Authorization = `Bearer ${token}`;
                 console.log('🔑 Token inyectado en petición:', config.url);
@@ -45,7 +45,7 @@ api.interceptors.request.use(
     }
 );
 
-// Response interceptor for better error handling
+// Interceptor de respuesta para manejo de errores mejorado
 api.interceptors.response.use(
     (response) => {
         console.log('✅ Response received from:', response.config.url);
@@ -56,7 +56,7 @@ api.interceptors.response.use(
             console.error('❌ 401 Unauthorized for:', error.config.url);
             console.error('❌ Response data:', error.response.data);
 
-            // Try to get session again
+            // Intentar obtener sesión de nuevo
             const { data } = await supabase.auth.getSession();
             console.log('🔍 Current session after 401:', data.session ? 'EXISTS' : 'NULL');
 

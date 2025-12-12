@@ -6,14 +6,14 @@ export function CommentSection({ articleId }) {
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // Will be replaced with actual auth check
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // Será reemplazado por la verificación de autenticación real.
 
   useEffect(() => {
-    // This will be replaced with actual API calls when backend is ready
+    // Será reemplazado con llamadas reales a la API cuando el backend esté listo
     const fetchComments = async () => {
       try {
         setLoading(true);
-        // Mock data for development
+        // Datos de desarrollo
         const mockComments = [
           {
             id: 1,
@@ -57,7 +57,7 @@ export function CommentSection({ articleId }) {
         ];
         
         setComments(mockComments);
-        // Simulate logged in user for development
+        // Simular usuario autenticado para desarrollo
         setIsLoggedIn(true);
       } catch (err) {
         setError('Failed to load comments');
@@ -74,14 +74,14 @@ export function CommentSection({ articleId }) {
     e.preventDefault();
     if (!newComment.trim()) return;
     
-    // This will be replaced with actual API calls when backend is ready
+    // Será reemplazado con llamadas reales a la API cuando el backend esté listo
     const newCommentObj = {
       id: Date.now(),
       content: newComment,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       user: {
-        id: 4, // Current user ID
+        id: 4, // ID del usuario actual
         name: 'Current User',
         avatar: 'https://ui-avatars.com/api/?name=Current+User&background=random'
       },
@@ -187,7 +187,7 @@ export function CommentSection({ articleId }) {
                     
                     {/* Comment Actions */}
                     <div className="flex space-x-2">
-                      {isLoggedIn && comment.user.id === 4 && ( // Current user ID check
+                      {isLoggedIn && comment.user.id === 4 && ( // Verificación del ID del usuario actual
                         <>
                           <button className="p-1 text-gray-500 hover:text-blue-600 transition-colors">
                             <Edit size={16} />

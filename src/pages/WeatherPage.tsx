@@ -36,7 +36,7 @@ interface WeatherData {
     };
 }
 
-// WMO Weather interpretation codes
+// Códigos de interpretación del clima WMO
 const getWeatherIcon = (code: number) => {
     if (code === 0) return <Sun className="h-full w-full" />;
     if (code >= 1 && code <= 3) return <Cloud className="h-full w-full" />;
@@ -122,12 +122,12 @@ export default function WeatherPage() {
         );
     }
 
-    // Get next 24 hours for hourly forecast
+    // Obtener las próximas 24 horas para el pronóstico por hora
     const next24Hours = weather.hourly.time.slice(0, 24);
 
     return (
         <div className="max-w-5xl mx-auto space-y-6">
-            {/* Header with City Selector */}
+            {/* Encabezado con Selector de Ciudad */}
             <div className="flex items-center justify-between">
                 <h1 className="text-3xl font-bold text-gray-900">El Tiempo</h1>
                 <select
@@ -143,10 +143,10 @@ export default function WeatherPage() {
                 </select>
             </div>
 
-            {/* Current Weather Card */}
+            {/* Tarjeta del Clima Actual */}
             <div className="bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl shadow-xl p-8 text-white">
                 <div className="flex items-start justify-between">
-                    {/* Left: Temperature and Icon */}
+                    {/* Izquierda: Temperatura e Ícono */}
                     <div className="flex items-center space-x-6">
                         <div className="text-blue-100">
                             {getWeatherIcon(weather.current.weather_code)}
@@ -161,7 +161,7 @@ export default function WeatherPage() {
                         </div>
                     </div>
 
-                    {/* Right: Details */}
+                    {/* Derecha: Detalles */}
                     <div className="text-right space-y-3">
                         <div className="text-xl font-semibold">{selectedCity}</div>
                         <div className="text-sm text-blue-100">
@@ -190,7 +190,7 @@ export default function WeatherPage() {
                 </div>
             </div>
 
-            {/* Hourly Forecast */}
+            {/* Pronóstico por horas */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">Pronóstico por horas</h2>
                 <div className="overflow-x-auto">
@@ -223,7 +223,7 @@ export default function WeatherPage() {
                 </div>
             </div>
 
-            {/* 7-Day Forecast */}
+            {/* Pronóstico de 7 días */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">Pronóstico de 7 días</h2>
                 <div className="space-y-3">

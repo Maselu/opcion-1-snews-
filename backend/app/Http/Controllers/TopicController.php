@@ -38,13 +38,13 @@ class TopicController extends Controller
 
     public function show($id)
     {
-        // Return ALL comments in flat list for frontend tree building
-        // This matches ArticleController behavior
+        // Devuelve TODOS los comentarios en una lista plana para la creación del árbol frontend
+        // Este coincide con el comportamiento de ArticleController
         $topic = Topic::with([
             'user',
             'article',
             'comments' => function ($query) {
-                // Get ALL comments (not just root level)
+                // Obtiene TODOS los comentarios (no solo el nivel raíz)
                 $query->with(['user', 'likes'])
                     ->orderBy('created_at', 'desc');
             }
