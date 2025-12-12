@@ -2,23 +2,12 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import api from '../services/api';
-import { Loader2, ArrowLeft, User, Clock, MessageSquare } from 'lucide-react';
+import { Loader2, ArrowLeft, Clock, MessageSquare, Send } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
-
-interface Comment {
-    id: number;
-    content: string;
-    user_id: string;
-    created_at: string;
-    user: {
-        id: string;
-        name: string;
-        avatar_url: string | null;
-    };
-    likes: any[];
-    replies?: Comment[];
-}
+import CommentList from '../components/CommentList';
+import { Comment } from '../types';
+import { buildCommentTree } from '../utils/commentUtils';
 
 interface Topic {
     id: number;
@@ -41,13 +30,14 @@ interface Topic {
 
 export default function TopicDetail() {
     const { id } = useParams<{ id: string }>();
-    const navigate = useNavigate();
     const location = useLocation();
     const { user } = useAuth();
     const [topic, setTopic] = useState<Topic | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [newComment, setNewComment] = useState('');
+    const [replyTo, setReplyTo] = useState<number | null>(null);
+    const [replyToName, setReplyToName] = useState('');
     const [submitting, setSubmitting] = useState(false);
 
     useEffect(() => {
@@ -74,18 +64,16 @@ export default function TopicDetail() {
 
         try {
             setSubmitting(true);
-            const response = await api.post(`/topics/${id}/comments`, {
+            await api.post(`/topics/${id}/comments`, {
                 content: newComment,
+                parent_comment_id: replyTo
             });
 
-            // Add new comment to the list
-            if (topic) {
-                setTopic({
-                    ...topic,
-                    comments: [response.data, ...topic.comments],
-                });
-            }
             setNewComment('');
+            setReplyTo(null);
+            setReplyToName('');
+            // Refresh to get updated comments
+            fetchTopic();
         } catch (err: any) {
             console.error('Error posting comment:', err);
             alert(err.response?.data?.message || 'Error al publicar el comentario');
@@ -94,19 +82,30 @@ export default function TopicDetail() {
         }
     };
 
-    const handleLike = async (commentId: number) => {
-        if (!user) {
-            navigate('/login', { state: { from: location } });
-            return;
-        }
-
+    const handleDeleteComment = async (commentId: number) => {
+        if (!confirm('¿Estás seguro de eliminar este comentario?')) return;
         try {
-            await api.post(`/comments/${commentId}/likes`);
-            // Refresh topic to get updated likes
+            await api.delete(`/comments/${commentId}`);
             fetchTopic();
         } catch (err: any) {
-            console.error('Error toggling like:', err);
+            console.error('Error deleting comment:', err);
+            alert('Error al eliminar el comentario');
         }
+    };
+
+    const handleEditComment = async (commentId: number, newContent: string) => {
+        try {
+            await api.put(`/comments/${commentId}`, { content: newContent });
+            fetchTopic();
+        } catch (err: any) {
+            console.error('Error editing comment:', err);
+            alert('Error al editar el comentario');
+        }
+    };
+
+    const handleReply = (parentId: number, authorName: string) => {
+        setReplyTo(parentId);
+        setReplyToName(authorName);
     };
 
     const getAvatarUrl = (user: Topic['user']) => {
@@ -136,6 +135,10 @@ export default function TopicDetail() {
             </div>
         );
     }
+
+    // Build hierarchical comment tree from flat list
+    const allComments = topic.comments || [];
+    const commentTree = buildCommentTree(allComments);
 
     return (
         <div className="max-w-4xl mx-auto space-y-8">
@@ -198,27 +201,56 @@ export default function TopicDetail() {
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
                 <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
                     <MessageSquare className="h-6 w-6 mr-2" />
-                    Discusión ({topic.comments.length})
+                    Discusión ({allComments.length})
                 </h2>
 
                 {/* Comment Form */}
                 {user ? (
                     <form onSubmit={handleSubmitComment} className="mb-8">
-                        <textarea
-                            value={newComment}
-                            onChange={(e) => setNewComment(e.target.value)}
-                            placeholder="Escribe tu comentario..."
-                            rows={4}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                        />
-                        <div className="mt-3 flex justify-end">
-                            <button
-                                type="submit"
-                                disabled={submitting || !newComment.trim()}
-                                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
-                            >
-                                {submitting ? 'Publicando...' : 'Publicar Comentario'}
-                            </button>
+                        <div className="flex gap-4">
+                            <img
+                                src={user.user_metadata?.avatar_url || `https://ui-avatars.com/api/?name=${user.email}&background=random`}
+                                alt=""
+                                className="h-10 w-10 rounded-full flex-shrink-0"
+                            />
+                            <div className="flex-1">
+                                {replyTo && (
+                                    <div className="text-sm text-gray-600 mb-2 flex justify-between items-center bg-blue-50 border border-blue-200 p-3 rounded-lg">
+                                        <span className="font-medium">Respondiendo a @{replyToName}</span>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setReplyTo(null);
+                                                setReplyToName('');
+                                            }}
+                                            className="text-red-600 hover:text-red-700 font-medium"
+                                        >
+                                            Cancelar
+                                        </button>
+                                    </div>
+                                )}
+                                <textarea
+                                    value={newComment}
+                                    onChange={(e) => setNewComment(e.target.value)}
+                                    placeholder="Escribe tu comentario..."
+                                    rows={4}
+                                    className="w-full border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 p-3 resize-none"
+                                />
+                                <div className="mt-3 flex justify-end">
+                                    <button
+                                        type="submit"
+                                        disabled={submitting || !newComment.trim()}
+                                        className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+                                    >
+                                        {submitting ? (
+                                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                        ) : (
+                                            <Send className="h-4 w-4 mr-2" />
+                                        )}
+                                        Publicar Comentario
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </form>
                 ) : (
@@ -237,70 +269,18 @@ export default function TopicDetail() {
                 )}
 
                 {/* Comments List */}
-                <div className="space-y-6">
-                    {topic.comments.length > 0 ? (
-                        topic.comments.map((comment) => (
-                            <div key={comment.id} className="border-b border-gray-200 pb-6 last:border-0">
-                                <div className="flex items-start space-x-4">
-                                    <img
-                                        src={getAvatarUrl(comment.user)}
-                                        alt={comment.user.name}
-                                        className="h-10 w-10 rounded-full"
-                                    />
-                                    <div className="flex-1">
-                                        <div className="flex items-center justify-between">
-                                            <div>
-                                                <p className="font-medium text-gray-900">{comment.user.name}</p>
-                                                <p className="text-sm text-gray-500">
-                                                    {formatDistanceToNow(new Date(comment.created_at), {
-                                                        addSuffix: true,
-                                                        locale: es,
-                                                    })}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <p className="mt-2 text-gray-700 whitespace-pre-wrap">{comment.content}</p>
-                                        <div className="mt-3 flex items-center space-x-4">
-                                            <button
-                                                onClick={() => handleLike(comment.id)}
-                                                className={`flex items-center space-x-1 text-sm ${comment.likes.some((like: any) => like.user_id === user?.id)
-                                                    ? 'text-red-600'
-                                                    : 'text-gray-500 hover:text-red-600'
-                                                    } transition-colors`}
-                                            >
-                                                <span>{comment.likes.some((like: any) => like.user_id === user?.id) ? '❤️' : '🤍'}</span>
-                                                <span>{comment.likes.length}</span>
-                                            </button>
-                                        </div>
-
-                                        {/* Replies */}
-                                        {comment.replies && comment.replies.length > 0 && (
-                                            <div className="mt-4 ml-8 space-y-4">
-                                                {comment.replies.map((reply) => (
-                                                    <div key={reply.id} className="flex items-start space-x-3">
-                                                        <img
-                                                            src={getAvatarUrl(reply.user)}
-                                                            alt={reply.user.name}
-                                                            className="h-8 w-8 rounded-full"
-                                                        />
-                                                        <div className="flex-1">
-                                                            <p className="font-medium text-gray-900 text-sm">{reply.user.name}</p>
-                                                            <p className="text-sm text-gray-700 mt-1">{reply.content}</p>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        ))
-                    ) : (
-                        <p className="text-center text-gray-500 py-8">
-                            No hay comentarios aún. ¡Sé el primero en comentar!
-                        </p>
-                    )}
-                </div>
+                {commentTree.length > 0 ? (
+                    <CommentList
+                        comments={commentTree}
+                        onReply={handleReply}
+                        onDelete={handleDeleteComment}
+                        onEdit={handleEditComment}
+                    />
+                ) : (
+                    <p className="text-center text-gray-500 py-8">
+                        No hay comentarios aún. ¡Sé el primero en comentar!
+                    </p>
+                )}
             </div>
         </div>
     );

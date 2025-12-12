@@ -30,6 +30,7 @@ export interface Comment {
     parent_comment_id?: number;
     content: string;
     created_at: string;
+    edited_at?: string | null;
     user?: User;
     replies?: Comment[];
     likes?: Like[];

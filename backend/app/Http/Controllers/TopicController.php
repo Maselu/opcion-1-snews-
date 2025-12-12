@@ -12,15 +12,15 @@ class TopicController extends Controller
     {
         $topics = Topic::with(['user', 'article'])
             ->withCount('comments')
-            ->latest()
-            ->paginate(15);
+            ->orderBy('created_at', 'desc')
+            ->get();
 
-        return response()->json($topics);
+        return response()->json(['data' => $topics]);
     }
 
     public function store(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'article_id' => 'nullable|exists:articles,id',
@@ -38,12 +38,14 @@ class TopicController extends Controller
 
     public function show($id)
     {
+        // Return ALL comments in flat list for frontend tree building
+        // This matches ArticleController behavior
         $topic = Topic::with([
             'user',
             'article',
             'comments' => function ($query) {
-                $query->whereNull('parent_comment_id')
-                    ->with(['user', 'likes', 'replies.user', 'replies.likes'])
+                // Get ALL comments (not just root level)
+                $query->with(['user', 'likes'])
                     ->orderBy('created_at', 'desc');
             }
         ])->findOrFail($id);
@@ -55,14 +57,13 @@ class TopicController extends Controller
     {
         $topic = Topic::findOrFail($id);
 
-        // Check if user owns the topic
         if ($topic->user_id !== Auth::id()) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
         $validated = $request->validate([
-            'title' => 'sometimes|string|max:255',
-            'description' => 'sometimes|nullable|string',
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
         ]);
 
         $topic->update($validated);
@@ -74,13 +75,12 @@ class TopicController extends Controller
     {
         $topic = Topic::findOrFail($id);
 
-        // Check if user owns the topic
         if ($topic->user_id !== Auth::id()) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
         $topic->delete();
 
-        return response()->json(['message' => 'Topic deleted successfully']);
+        return response()->json(['message' => 'Topic deleted']);
     }
 }

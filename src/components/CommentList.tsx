@@ -3,11 +3,12 @@ import CommentItem from './CommentItem';
 
 interface CommentListProps {
     comments: Comment[];
-    onReply: (parentId: number) => void;
+    onReply: (parentId: number, authorName: string) => void;
     onDelete: (commentId: number) => void;
+    onEdit: (commentId: number, newContent: string) => void;
 }
 
-export default function CommentList({ comments, onReply, onDelete }: CommentListProps) {
+export default function CommentList({ comments, onReply, onDelete, onEdit }: CommentListProps) {
     return (
         <div className="divide-y divide-gray-200">
             {comments.map(comment => (
@@ -16,6 +17,7 @@ export default function CommentList({ comments, onReply, onDelete }: CommentList
                     comment={comment}
                     onReply={onReply}
                     onDelete={onDelete}
+                    onEdit={onEdit}
                 />
             ))}
         </div>

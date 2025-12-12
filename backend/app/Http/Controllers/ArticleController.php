@@ -34,8 +34,15 @@ class ArticleController extends Controller
 
     public function show($id)
     {
-        $article = Article::with(['category', 'comments.user', 'comments.likes', 'comments.replies.user'])
-            ->findOrFail($id);
+        // Return ALL comments in flat list for frontend tree building
+        $article = Article::with([
+            'category',
+            'comments' => function ($query) {
+                // Get ALL comments (not just root level)
+                $query->with(['user', 'likes'])
+                    ->orderBy('created_at', 'desc');
+            }
+        ])->findOrFail($id);
 
         return response()->json($article);
     }

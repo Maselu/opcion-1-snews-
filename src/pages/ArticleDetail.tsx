@@ -8,6 +8,7 @@ import CommentList from '../components/CommentList';
 import { Loader2, Send, Calendar, Tag, ExternalLink, MessageSquarePlus } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { buildCommentTree } from '../utils/commentUtils';
 
 export default function ArticleDetail() {
   const { id } = useParams<{ id: string }>();
@@ -17,7 +18,16 @@ export default function ArticleDetail() {
 
   const [commentContent, setCommentContent] = useState('');
   const [replyTo, setReplyTo] = useState<number | null>(null);
+  const [replyToName, setReplyToName] = useState<string>('');
   const [submitting, setSubmitting] = useState(false);
+  const [comments, setComments] = useState<Comment[]>([]);
+
+  // Update comments when article loads
+  useState(() => {
+    if (article) {
+      setComments((article as any).comments as Comment[] || []);
+    }
+  });
 
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,6 +41,8 @@ export default function ArticleDetail() {
       });
       setCommentContent('');
       setReplyTo(null);
+      setReplyToName('');
+      // Refresh article data to get updated comments
       window.location.reload();
     } catch (error) {
       console.error('Error posting comment', error);
@@ -49,6 +61,21 @@ export default function ArticleDetail() {
       console.error('Error deleting comment', error);
       alert('Error al eliminar el comentario');
     }
+  };
+
+  const handleEditComment = async (commentId: number, newContent: string) => {
+    try {
+      await api.put(`/comments/${commentId}`, { content: newContent });
+      window.location.reload();
+    } catch (error) {
+      console.error('Error editing comment', error);
+      alert('Error al editar el comentario');
+    }
+  };
+
+  const handleReply = (parentId: number, authorName: string) => {
+    setReplyTo(parentId);
+    setReplyToName(authorName);
   };
 
   if (loading) {
@@ -70,7 +97,9 @@ export default function ArticleDetail() {
     );
   }
 
-  const comments = (article as any).comments as Comment[] || [];
+  // Build hierarchical comment tree from flat list
+  const allComments = (article as any)?.comments as Comment[] || [];
+  const commentTree = buildCommentTree(allComments);
 
   return (
     <div className="space-y-8">
@@ -143,11 +172,14 @@ export default function ArticleDetail() {
               />
               <div className="flex-1">
                 {replyTo && (
-                  <div className="text-sm text-gray-600 mb-2 flex justify-between items-center bg-gray-50 p-2 rounded">
-                    <span>Respondiendo al comentario #{replyTo}</span>
+                  <div className="text-sm text-gray-600 mb-2 flex justify-between items-center bg-blue-50 border border-blue-200 p-3 rounded-lg">
+                    <span className="font-medium">Respondiendo a @{replyToName}</span>
                     <button
                       type="button"
-                      onClick={() => setReplyTo(null)}
+                      onClick={() => {
+                        setReplyTo(null);
+                        setReplyToName('');
+                      }}
                       className="text-red-600 hover:text-red-700 font-medium"
                     >
                       Cancelar
@@ -194,11 +226,12 @@ export default function ArticleDetail() {
           </div>
         )}
 
-        {comments.length > 0 ? (
+        {commentTree.length > 0 ? (
           <CommentList
-            comments={comments}
-            onReply={setReplyTo}
+            comments={commentTree}
+            onReply={handleReply}
             onDelete={handleDeleteComment}
+            onEdit={handleEditComment}
           />
         ) : (
           <div className="text-center py-12 text-gray-500">
