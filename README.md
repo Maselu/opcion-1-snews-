@@ -1,6 +1,6 @@
 # 📰 SNews - Social News & Interactive Forum
 
-![SNews Banner](https://via.placeholder.com/1200x400?text=SNews+Application+Preview)
+![SNews Banner](screenshots/home.png)
 
 
 **SNews** es una aplicación web Full Stack moderna que centraliza el consumo de noticias y fomenta la interacción social. Combina la agilidad de una SPA en **React**, la robustez de una API en **Laravel** y la potencia en la nube de **Supabase**.
@@ -142,11 +142,11 @@ El proyecto incluye una colección de pruebas para validar la API.
 
 | Home Page | Foro de Discusión |
 | :---: | :---: |
-| ![Home](https://via.placeholder.com/400x200?text=Home+Preview) | ![Foro](https://via.placeholder.com/400x200?text=Forum+Preview) |
+| ![Home](screenshots/homepage.png) | ![Foro](screenshots/foro.png) |
 
 | Detalle Noticia | Perfil de Usuario |
 | :---: | :---: |
-| ![Article](https://via.placeholder.com/400x200?text=Article+Preview) | ![Profile](https://via.placeholder.com/400x200?text=Profile+Preview) |
+| ![Article](screenshots/article.png) | ![Profile](screenshots/profile.png) |
 
 ---
 
